@@ -1,8 +1,8 @@
-import SearchView from './components/SearchView/SearchView';
+import Search from './components/Search/Search';
 import "./App.css"
 
 function App() {
-  return <SearchView></SearchView>
+  return <Search />;
 }
 
 export default App;
