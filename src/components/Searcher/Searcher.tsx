@@ -102,12 +102,14 @@ export default function Searcher({
   }, []);
 
   useEffect(() => {
+    console.log(searcherName, searchString);
     if (!allowSearchExecution) {
       return;
     }
     if (searchString.trim().length === 0) {
       return;
     }
+    console.log('Executing search for', searcherName);
     setSearchResults((prev) => {
       return {
         ...prev,

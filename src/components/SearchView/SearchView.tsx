@@ -12,7 +12,13 @@ interface SearchViewProps {
   searchableMapping: Record<string, SearchableMapping>;
 }
 
-export default function SearchView({ initialSearchCategory, inputSearchLabel, inputSearchPlaceholder, inputSearchNoResults, searchableMapping }: SearchViewProps) {
+export default function SearchView({
+  initialSearchCategory,
+  inputSearchLabel,
+  inputSearchPlaceholder,
+  inputSearchNoResults,
+  searchableMapping,
+}: SearchViewProps) {
   const [searchString, setSearchString] = useState<string>('');
   const [searchResults, setSearchResults] = useState<{ [key: string]: any[] }>(
     {}
@@ -21,8 +27,6 @@ export default function SearchView({ initialSearchCategory, inputSearchLabel, in
     initialSearchCategory
   );
   const [amountOfSearchResults, setAmountOfSearchResults] = useState<number>(0);
-
-
 
   useEffect(() => {
     if (searchString.trim().length === 0) {
@@ -94,7 +98,7 @@ export default function SearchView({ initialSearchCategory, inputSearchLabel, in
               className={clsx(
                 'cursor-pointer select-none py-2 px-8 bg-blue-400 rounded-sm',
                 searchCategory === initialSearchCategory &&
-                'bg-blue-600 text-white'
+                  'bg-blue-600 text-white'
               )}
               onClick={() => {
                 setSearchCategory(initialSearchCategory);
@@ -106,6 +110,7 @@ export default function SearchView({ initialSearchCategory, inputSearchLabel, in
               </p>
             </div>
             {Object.keys(searchableMapping).map((key) => {
+              console.log(key, searchResults[key]);
               return (
                 <Searcher
                   className={clsx(
@@ -122,7 +127,10 @@ export default function SearchView({ initialSearchCategory, inputSearchLabel, in
                   searcherIdField={searchableMapping[key].idField}
                   searchString={searchString}
                   amountOfResults={searchResults[key]?.length}
-                  allowSearchExecution={searchCategory === key || searchCategory === initialSearchCategory}
+                  allowSearchExecution={
+                    searchCategory === key ||
+                    searchCategory === initialSearchCategory
+                  }
                   setSearchResults={setSearchResults}
                   onClick={() => {
                     setSearchCategory(key);
@@ -135,10 +143,12 @@ export default function SearchView({ initialSearchCategory, inputSearchLabel, in
         <div className="flex flex-col bg-blue-50 rounded-sm h-full">
           <div className="grid grid-cols-4 row-span-1 gap-2 p-2">
             {searchResults &&
-              Object.entries(searchResults).every(([_, value]) => {
-                return value.length > 0;
-              })
-              ? Object.entries(searchResults)
+            Object.entries(searchResults).map(([_, value]) => {
+              return searchCategory === initialSearchCategory
+                ? true
+                : value.length > 0;
+            }) ? (
+              Object.entries(searchResults)
                 .filter(
                   ([key, _]) =>
                     key === searchCategory ||
@@ -163,8 +173,11 @@ export default function SearchView({ initialSearchCategory, inputSearchLabel, in
                     );
                   });
                 })
-              : <div className='flex flex-col w-full p-2 font-bold text-xl'>{inputSearchNoResults}</div>}
-
+            ) : (
+              <div className="flex flex-col w-full p-2 font-bold text-xl">
+                {inputSearchNoResults}
+              </div>
+            )}
           </div>
         </div>
       </div>
