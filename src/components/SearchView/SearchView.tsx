@@ -14,6 +14,7 @@ interface SearchableMapping {
 const initialSearchCategory = 'all';
 const inputSearchLabel = 'Search';
 const inputSearchPlaceholder = 'Search for';
+const inputSearchNoResults = 'No results found';
 
 export default function SearchView() {
   const [searchString, setSearchString] = useState<string>('');
@@ -181,7 +182,7 @@ export default function SearchView() {
               className={clsx(
                 'cursor-pointer select-none py-2 px-8 bg-blue-400 rounded-sm',
                 searchCategory === initialSearchCategory &&
-                  'bg-blue-600 text-white'
+                'bg-blue-600 text-white'
               )}
               onClick={() => {
                 setSearchCategory(initialSearchCategory);
@@ -222,7 +223,10 @@ export default function SearchView() {
         <div className="flex flex-col bg-blue-50 rounded-sm h-full">
           <div className="grid grid-cols-4 row-span-1 gap-2 p-2">
             {searchResults &&
-              Object.entries(searchResults)
+              Object.entries(searchResults).every(([_, value]) => {
+                return value.length > 0;
+              })
+              ? Object.entries(searchResults)
                 .filter(
                   ([key, _]) =>
                     key === searchCategory ||
@@ -246,7 +250,9 @@ export default function SearchView() {
                       <SearchResultComponent key={result._id} {...result} />
                     );
                   });
-                })}
+                })
+              : <div className='flex flex-col w-full p-2 font-bold text-xl'>{inputSearchNoResults}</div>}
+
           </div>
         </div>
       </div>
