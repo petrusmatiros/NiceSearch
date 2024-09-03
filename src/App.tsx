@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import Searcher from './Searcher';
 import PostSearchResult from './PostSearchResult';
+import { capitalizeFirstLetter } from './utils';
 
 interface SearchableMapping {
   searchableField: string;
@@ -10,10 +11,15 @@ interface SearchableMapping {
   dataSet: any[];
 }
 
+const initialSearchCategory = 'all';
+
 function App() {
   const [searchString, setSearchString] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<Map<string, any[]>>(
-    new Map()
+  const [searchResults, setSearchResults] = useState<{ [key: string]: any[] }>(
+    {}
+  );
+  const [searchCategory, setSearchCategory] = useState<string>(
+    initialSearchCategory
   );
 
   const searchableMapping: Record<string, SearchableMapping> = {
@@ -67,12 +73,67 @@ function App() {
         },
       ],
     },
+    page: {
+      searchableField: 'title',
+      idField: '_id',
+      component: PostSearchResult,
+      dataSet: [
+        {
+          _id: 'page1',
+          _type: 'page',
+          title: 'About Us',
+          slug: { _type: 'slug', current: 'about-us' },
+        },
+        {
+          _id: 'page2',
+          _type: 'page',
+          title: 'Contact Us',
+          slug: { _type: 'slug', current: 'contact-us' },
+        },
+        {
+          _id: 'page3',
+          _type: 'page',
+          title: 'Privacy Policy',
+          slug: { _type: 'slug', current: 'privacy-policy' },
+        },
+        {
+          _id: 'page4',
+          _type: 'page',
+          title: 'Terms of Service',
+          slug: { _type: 'slug', current: 'terms-of-service' },
+        },
+      ],
+    },
   };
 
   useEffect(() => {
-    console.log(searchResults.get('post'));
-    console.log(searchString);
+    if (searchString.trim().length === 0) {
+      for (const key in searchableMapping) {
+        setSearchResults((prev) => {
+          return {
+            ...prev,
+            [key]: searchableMapping[key].dataSet,
+          };
+        });
+      }
+    }
   }, [searchString]);
+
+  useEffect(() => {
+    console.log(searchCategory);
+    setSearchResults((prev) => {
+      const newResults: { [key: string]: any[] } = {};
+      for (const key in prev) {
+        newResults[key] = prev[key].filter((result) => {
+          return result[searchableMapping[key].searchableField]
+            .toString()
+            .toLowerCase()
+            .includes(searchString.toLowerCase());
+        });
+      }
+      return newResults;
+    });
+  }, [searchCategory]);
 
   return (
     <div className="flex flex-col gap-8 h-full">
@@ -90,42 +151,60 @@ function App() {
             title="search"
             placeholder="Search posts"
             className="border-2 border-black rounded-sm focus:outline-none px-2 py-1 w-full"
-            onChange={(e) => {
-              setSearchString(e.target.value.trim());
+            onInput={(e) => {
+              setSearchString((e.target as HTMLInputElement).value);
             }}
           />
         </div>
-        <div className="flex flex-row w-full gap-2 p-2 cursor-pointer select-none">
-          <div>All</div>
+        <div className="flex flex-row w-full gap-2 p-2">
+          <div
+            className="cursor-pointer select-none py-2 px-8 bg-gray-400 rounded-sm"
+            onClick={() => {
+              setSearchCategory(initialSearchCategory);
+            }}
+          >
+            {capitalizeFirstLetter(initialSearchCategory)}
+          </div>
           {Object.keys(searchableMapping).map((key) => {
             return (
               <Searcher
+                className="cursor-pointer select-none py-2 px-8 bg-gray-400 rounded-sm"
                 key={key}
                 searcherName={key}
+                searcherFuzzyOptions={{ intraMode: 1 }}
                 searcherDataSet={searchableMapping[key].dataSet}
                 searcherSearchableField={searchableMapping[key].searchableField}
                 searcherIdField={searchableMapping[key].idField}
                 searchString={searchString}
                 setSearchResults={setSearchResults}
+                onClick={() => {
+                  setSearchCategory(key);
+                }}
               />
             );
           })}
         </div>
       </div>
       <div className="flex flex-col gap-2 p-2 bg-gray-200 rounded-sm h-full">
-        {Array.from(searchResults).map(([key, value]) => {
-          if (searchResults.get(key)?.length === 0) {
-            return (
-              <div key={key} className="flex flex-col gap-2 p-2 bg-gray-300 rounded-sm">
-                <h1 className="text-base font-bold">No results found</h1>
-              </div>
-            );
-          }
-          const SearchResultComponent = searchableMapping[key].component;
-          return value.map((result: any) => {
-            return <SearchResultComponent key={result._id} {...result} />;
-          });
-        })}
+        {searchResults &&
+          Object.entries(searchResults)
+            .filter(([key, _]) => key === searchCategory || searchCategory === initialSearchCategory)
+            .map(([key, value]) => {
+              if (!value.length) {
+                return null;
+              }
+              if (!searchableMapping[key]) {
+                return null;
+              }
+
+              if (!searchableMapping[key].component) {
+                return null;
+              }
+              const SearchResultComponent = searchableMapping[key].component;
+              return value.map((result: any) => {
+                return <SearchResultComponent key={result._id} {...result} />;
+              });
+            })}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import uFuzzy from '@leeoniya/ufuzzy';
 import './App.css';
+import { capitalizeFirstLetter } from './utils';
 
 interface SearcherProps {
   searcherName: string;
@@ -9,7 +10,9 @@ interface SearcherProps {
   searcherSearchableField: string;
   searcherIdField: string;
   searchString: string;
-  setSearchResults: Dispatch<SetStateAction<Map<any, any>>>
+  setSearchResults: Dispatch<SetStateAction<{ [key: string]: any[] }>>
+  onClick: (data: any) => void;
+  className?: string;
 }
 
 function Searcher({
@@ -20,9 +23,10 @@ function Searcher({
   searcherIdField,
   searchString,
   setSearchResults,
+  onClick,
+  className,
 }: SearcherProps) {
   const fuzzy = new uFuzzy(searcherFuzzyOptions ?? {});
-  const [mainDataSet, _] = useState(searcherDataSet);
   const [mainDataIndex, setMainDataIndex] = useState<Map<string, any>>(
     new Map()
   );
@@ -80,7 +84,7 @@ function Searcher({
       return dataSet;
     }
 
-    const dataSet = generateSearchableDataSet(mainDataSet, searcherSearchableField, searcherIdField);
+    const dataSet = generateSearchableDataSet(searcherDataSet, searcherSearchableField, searcherIdField);
 
     if (typeof dataSet === 'string') {
       console.error(dataSet);
@@ -90,8 +94,15 @@ function Searcher({
   }, []);
 
   useEffect(() => {
-    console.log(searchString, "internal");
-    setSearchResults(prev => prev.set(searcherName, executeSearch(fuzzy, mainDataIndex, searchableDataSet, searchIndex, searchString)));
+    if (searchString.trim().length === 0) {
+      return;
+    }
+    setSearchResults((prev) => {
+      return {
+        ...prev,
+        [searcherName]: executeSearch(fuzzy, mainDataIndex, searchableDataSet, searchIndex, searchString),
+      };
+    });
   }, [searchString]);
 
   function executeSearch(
@@ -101,9 +112,7 @@ function Searcher({
     searchIndex: Map<string, string>,
     searchQuery: string
   ) {
-    if (searchQuery.trim().length === 0) {
-      return [];
-    }
+    if (searchQuery.trim().length === 0) return [];
     const fuzzyResults = fuzzy.search(stringDataSet, searchQuery, 0);
     // Select first entry of results, since the first array contains the search results
     const resultIndices = fuzzyResults[0] ?? [];
@@ -117,11 +126,12 @@ function Searcher({
         searchResults.push(objectData);
       }
     }
+    console.log("Search results", searchResults, "with query", searchQuery);
     return searchResults;
   }
 
   return (
-    <div>{searcherName}</div>
+    <div onClick={onClick} className={className}>{capitalizeFirstLetter(searcherName)}</div>
   );
 }
 
