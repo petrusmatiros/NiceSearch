@@ -7,6 +7,7 @@ export default function Search() {
   const inputSearchLabel = 'Search';
   const inputSearchPlaceholder = 'Search for';
   const inputSearchNoResults = 'No results found';
+  const maxAmountOfCards = 10;
   const searchableMapping: Record<string, SearchableMapping> = {
     post: {
       searchableField: 'title',
@@ -90,6 +91,16 @@ export default function Search() {
       ],
     },
   };
+
+  // add 100 000 more posts 
+  for (let i = 6; i < 100006; i++) {
+    searchableMapping.post.dataSet.push({
+      _id: 'post' + i,
+      _type: 'post',
+      title: 'Post ' + i,
+      slug: { _type: 'slug', current: 'post-' + i },
+    });
+  }
   
   return (
     <SearchView
@@ -97,6 +108,7 @@ export default function Search() {
       inputSearchLabel={inputSearchLabel}
       inputSearchPlaceholder={inputSearchPlaceholder}
       inputSearchNoResults={inputSearchNoResults}
+      maxAmountOfCards={maxAmountOfCards}
       searchableMapping={searchableMapping}
     />
   );

@@ -9,6 +9,7 @@ interface SearchViewProps {
   inputSearchLabel: string;
   inputSearchPlaceholder: string;
   inputSearchNoResults: string;
+  maxAmountOfCards: number;
   searchableMapping: Record<string, SearchableMapping>;
 }
 
@@ -17,6 +18,7 @@ export default function SearchView({
   inputSearchLabel,
   inputSearchPlaceholder,
   inputSearchNoResults,
+  maxAmountOfCards,
   searchableMapping,
 }: SearchViewProps) {
   const [searchString, setSearchString] = useState<string>('');
@@ -42,30 +44,29 @@ export default function SearchView({
   }, [searchString]);
 
   useEffect(() => {
+    // TODO
     if (searchString.trim().length === 0) {
       return;
     }
     setSearchResults((prev) => {
-      const newResults: { [key: string]: any[] } = {};
-      for (const key in prev) {
-        newResults[key] = prev[key].filter((result) => {
-          return result[searchableMapping[key].searchableField]
-            .toString()
-            .toLowerCase()
-            .includes(searchString.toLowerCase());
-        });
-      }
-      return newResults;
+      return {
+        ...prev,
+        [searchCategory]: searchableMapping[searchCategory].dataSet.filter(
+          (data) => {
+            const searchableField = searchableMapping[searchCategory]
+              .searchableField;
+            return data[searchableField]
+              .toLowerCase()
+              .includes(searchString.toLowerCase());
+          }
+        ),
+      };
     });
   }, [searchCategory]);
 
   useEffect(() => {
     setAmountOfSearchResults(
       Object.values(searchResults).reduce((acc, curr) => {
-        if (!curr) {
-          return acc;
-        }
-
         return acc + curr.length;
       }, 0)
     );
@@ -98,7 +99,7 @@ export default function SearchView({
               className={clsx(
                 'cursor-pointer select-none py-2 px-8 bg-blue-400 rounded-sm',
                 searchCategory === initialSearchCategory &&
-                  'bg-blue-600 text-white'
+                'bg-blue-600 text-white'
               )}
               onClick={() => {
                 setSearchCategory(initialSearchCategory);
@@ -143,11 +144,11 @@ export default function SearchView({
         <div className="flex flex-col bg-blue-50 rounded-sm h-full">
           <div className="grid grid-cols-4 row-span-1 gap-2 p-2">
             {searchResults &&
-            Object.entries(searchResults).map(([_, value]) => {
-              return searchCategory === initialSearchCategory
-                ? true
-                : value.length > 0;
-            }) ? (
+              Object.entries(searchResults).map(([_, value]) => {
+                return searchCategory === initialSearchCategory
+                  ? true
+                  : value.length > 0;
+              }) ? (
               Object.entries(searchResults)
                 .filter(
                   ([key, _]) =>
@@ -167,7 +168,10 @@ export default function SearchView({
                   }
                   const SearchResultComponent =
                     searchableMapping[key].component;
-                  return value.map((result: any) => {
+                  return value.map((result: any, index: number) => {
+                    if (index > maxAmountOfCards) {
+                      return null;
+                    }
                     return (
                       <SearchResultComponent key={result._id} {...result} />
                     );
