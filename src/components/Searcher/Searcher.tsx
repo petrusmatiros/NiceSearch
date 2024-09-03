@@ -1,7 +1,6 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import uFuzzy from '@leeoniya/ufuzzy';
-import './App.css';
-import { capitalizeFirstLetter } from './utils';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { capitalizeFirstLetter } from '../../utils';
 
 interface SearcherProps {
   searcherName: string;
@@ -10,23 +9,27 @@ interface SearcherProps {
   searcherSearchableField: string;
   searcherIdField: string;
   searchString: string;
-  setSearchResults: Dispatch<SetStateAction<{ [key: string]: any[] }>>
+  amountOfResults?: number;
+  allowSearchExecution: boolean;
+  setSearchResults: Dispatch<SetStateAction<{ [key: string]: any[] }>>;
   onClick: (data: any) => void;
   className?: string;
 }
 
-function Searcher({
+export default function Searcher({
   searcherName,
   searcherFuzzyOptions,
   searcherDataSet,
   searcherSearchableField,
   searcherIdField,
   searchString,
+  amountOfResults,
+  allowSearchExecution,
   setSearchResults,
   onClick,
   className,
 }: SearcherProps) {
-  const fuzzy = new uFuzzy(searcherFuzzyOptions ?? {});
+  const [fuzzyRef, setFuzzyRef] = useState<uFuzzy | null>(null);
   const [mainDataIndex, setMainDataIndex] = useState<Map<string, any>>(
     new Map()
   );
@@ -80,11 +83,16 @@ function Searcher({
       // Set the indices
       setSearchIndex(searchIndex);
       setMainDataIndex(mainDataIndex);
+      setFuzzyRef(new uFuzzy(searcherFuzzyOptions));
 
       return dataSet;
     }
 
-    const dataSet = generateSearchableDataSet(searcherDataSet, searcherSearchableField, searcherIdField);
+    const dataSet = generateSearchableDataSet(
+      searcherDataSet,
+      searcherSearchableField,
+      searcherIdField
+    );
 
     if (typeof dataSet === 'string') {
       console.error(dataSet);
@@ -94,26 +102,38 @@ function Searcher({
   }, []);
 
   useEffect(() => {
+    if (!allowSearchExecution) {
+      return;
+    }
     if (searchString.trim().length === 0) {
       return;
     }
     setSearchResults((prev) => {
       return {
         ...prev,
-        [searcherName]: executeSearch(fuzzy, mainDataIndex, searchableDataSet, searchIndex, searchString),
+        [searcherName]: executeSearch(
+          fuzzyRef,
+          mainDataIndex,
+          searchableDataSet,
+          searchIndex,
+          searchString
+        ),
       };
     });
   }, [searchString]);
 
   function executeSearch(
-    fuzzy: uFuzzy,
+    fuzzy: uFuzzy | null,
     mainDataIndex: Map<string, any>,
     stringDataSet: string[],
     searchIndex: Map<string, string>,
     searchQuery: string
   ) {
     if (searchQuery.trim().length === 0) return [];
+    if (!fuzzy) return [];
+
     const fuzzyResults = fuzzy.search(stringDataSet, searchQuery, 0);
+
     // Select first entry of results, since the first array contains the search results
     const resultIndices = fuzzyResults[0] ?? [];
     const searchResults: any[] = [];
@@ -126,13 +146,14 @@ function Searcher({
         searchResults.push(objectData);
       }
     }
-    console.log("Search results", searchResults, "with query", searchQuery);
     return searchResults;
   }
 
   return (
-    <div onClick={onClick} className={className}>{capitalizeFirstLetter(searcherName)}</div>
+    <div onClick={onClick} className={className}>
+      <p>
+        {capitalizeFirstLetter(searcherName)} {<span>({amountOfResults})</span>}
+      </p>
+    </div>
   );
 }
-
-export default Searcher;

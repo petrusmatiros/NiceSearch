@@ -7,16 +7,14 @@ interface PostSearchResultProps {
   publishedAt: string;
 }
 
-function PostSearchResult({ _id, title, slug, publishedAt }: PostSearchResultProps) {
+export default function PostSearchResult({ _id, title, slug, publishedAt }: PostSearchResultProps) {
 
   return <div
     key={_id}
-    className="flex flex-col gap-2 p-2 bg-gray-300 rounded-sm"
+    className="flex flex-col gap-2 p-2 bg-blue-200 rounded-sm"
   >
     <h1 className="text-base font-bold">{title}</h1>
     <small>{slug.current}</small>
     <small>{publishedAt}</small>
   </div>
 }
-
-export default PostSearchResult;
