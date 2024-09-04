@@ -10,7 +10,7 @@ export default function Search() {
   const maxAmountOfCards = 10;
   const searchableMapping: Record<string, SearchableMapping> = {
     post: {
-      searchableField: 'title',
+      searchableFields: ['title'],
       idField: '_id',
       component: PostSearchResult,
       dataSet: [
@@ -60,7 +60,7 @@ export default function Search() {
       ],
     },
     page: {
-      searchableField: 'title',
+      searchableFields: ['title'],
       idField: '_id',
       component: PostSearchResult,
       dataSet: [

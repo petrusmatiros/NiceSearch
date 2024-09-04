@@ -6,7 +6,7 @@ interface SearcherProps {
   searcherName: string;
   searcherFuzzyOptions?: uFuzzy.Options;
   searcherDataSet: any[];
-  searcherSearchableField: string;
+  searcherSearchableFields: string[];
   searcherIdField: string;
   searchString: string;
   searchCategory: string;
@@ -22,7 +22,7 @@ export default function Searcher({
   searcherName,
   searcherFuzzyOptions,
   searcherDataSet,
-  searcherSearchableField,
+  searcherSearchableFields,
   searcherIdField,
   searchString,
   searchCategory,
@@ -45,14 +45,14 @@ export default function Searcher({
   useEffect(() => {
     function generateSearchableDataSet(
       data: any[],
-      searchableField: string,
+      searchableFields: string[],
       idField: string
     ): string[] | string {
       if (!data.length) {
         return 'No data provided';
       }
-      if (!searchableField) {
-        return 'No searchable field provided';
+      if (!searchableFields || !searchableFields.length) {
+        return 'No searchable fields provided';
       }
       if (!idField) {
         return 'No ID field provided';
@@ -65,19 +65,28 @@ export default function Searcher({
         return 'Indices are not empty';
       }
 
-      // Generate searchable string dataset
+      /**
+       * Generate string data set out of searchable fields
+       * Iterate through data, for each item, look through each searchable field
+       * For each searchable field, add the field data to the searchIndex and push the data to the data set
+       * After all of the searchable fields have been parsed for that given item, push the data to the dataset, and continue
+       */
       const dataSet: string[] = [];
       for (let i = 0; i < data.length; ++i) {
         const item = data[i];
-        const itemSearchableField = item[searchableField].toString();
         const itemIdField = item[idField].toString();
+        for (let k = 0; k < searchableFields.length; ++k) {
+          const fieldToSearch = searchableFields[k];
+          const itemSearchableField = item[fieldToSearch].toString();
+  
+          // Generate index (overriding duplicates)
+          searchIndex.set(itemSearchableField, itemIdField);
+          
+          dataSet.push(itemSearchableField.toString());
+        }
 
-        // Generate index (overriding duplicates)
-        searchIndex.set(itemSearchableField, itemIdField);
         // Passing reference to the main data
         mainDataIndex.set(itemIdField, item);
-
-        dataSet.push(itemSearchableField.toString());
       }
 
       if (!dataSet.length) {
@@ -94,7 +103,7 @@ export default function Searcher({
 
     const dataSet = generateSearchableDataSet(
       searcherDataSet,
-      searcherSearchableField,
+      searcherSearchableFields,
       searcherIdField
     );
 

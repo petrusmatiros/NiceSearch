@@ -47,7 +47,6 @@ export default function SearchView({
     if (searchString.trim().length === 0) {
       return;
     }
-    
   }, [searchCategory]);
 
   useEffect(() => {
@@ -107,8 +106,8 @@ export default function SearchView({
                   searcherName={key}
                   searcherFuzzyOptions={{ intraMode: 1 }}
                   searcherDataSet={searchableMapping[key].dataSet}
-                  searcherSearchableField={
-                    searchableMapping[key].searchableField
+                  searcherSearchableFields={
+                    searchableMapping[key].searchableFields
                   }
                   searcherIdField={searchableMapping[key].idField}
                   searchString={searchString}
