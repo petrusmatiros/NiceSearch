@@ -10,7 +10,7 @@ export default function Search() {
   const inputSearchPlaceholder = 'Search for';
   const inputSearchNoResults = 'No results found';
   const searchResultTimePrefixLabel = 'in';
-  const searchResultTimeAmountOfDecimals = 3;
+  const searchResultTimeAmountOfDecimals = 1;
   const searchResultTimeFormat = TimeFormat.Milliseconds;
   const searchMaxAmountOfCards = 10;
 

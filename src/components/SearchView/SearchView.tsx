@@ -39,20 +39,14 @@ export default function SearchView({
   input: { inputSearchLabel, inputSearchPlaceholder, inputSearchNoResults },
 }: SearchViewProps) {
   const [searchString, setSearchString] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<{ [key: string]: any[] }>(
-    {}
-  );
-  const [searchCategory, setSearchCategory] = useState<string>(
-    searchInitialCategory
-  );
+  const [searchResults, setSearchResults] = useState<{ [key: string]: any[] }>({});
+  const [searchCategory, setSearchCategory] = useState<string>(searchInitialCategory);
   const [amountOfSearchResults, setAmountOfSearchResults] = useState<number>(0);
-  const [searchTotalExecutionTime, setSearchTotalExecutionTime] =
-    useState<string>('');
+  const [searchTotalExecutionTime, setSearchTotalExecutionTime] = useState<string>('');
   const [searchResultsComputedTime, setSearchResultsComputedTime] = useState<{
     [key: string]: number;
   }>({});
-  const [searchShowNoResults, setSearchShowNoResults] =
-    useState<boolean>(false);
+  const [searchShowNoResults, setSearchShowNoResults] = useState<boolean>(false);
 
   /**
    * Set initial search results, or when search string is empty
@@ -81,7 +75,7 @@ export default function SearchView({
     // Run search all the time - done
     // Add highlighting
     // Show amount of results
-    // Show search time
+    // Show search time - done
 
     // Check if all results are empty (for initial search category) or if the current category is empty
     const resultsAreEmpty =
@@ -112,9 +106,7 @@ export default function SearchView({
         : searchResultsComputedTime[searchCategory];
 
     setSearchTotalExecutionTime(
-      computedTime.toFixed(
-        searchResultTimeAmountOfDecimals / searchResultTimeFormat.divideBy
-      ) + searchResultTimeFormat.postfix
+      `${computedTime.toFixed(searchResultTimeAmountOfDecimals / searchResultTimeFormat.divideBy)} ${searchResultTimeFormat.postfix}`
     );
   }, [searchResultsComputedTime]);
 
@@ -156,16 +148,14 @@ export default function SearchView({
           <div
             className={clsx(
               'cursor-pointer select-none py-2 px-8 bg-blue-400 rounded-sm',
-              searchCategory === searchInitialCategory &&
-                'bg-blue-600 text-white'
+              searchCategory === searchInitialCategory && 'bg-blue-600 text-white'
             )}
             onClick={() => {
               setSearchCategory(searchInitialCategory);
             }}
           >
             <p>
-              {capitalizeFirstLetter(searchInitialCategory)}{' '}
-              {<span>{amountOfSearchResults}</span>}
+              {capitalizeFirstLetter(searchInitialCategory)} {<span>{amountOfSearchResults}</span>}
             </p>
           </div>
         )}
@@ -181,8 +171,7 @@ export default function SearchView({
                 searcherName: key,
                 searcherFuzzyOptions: searcherFuzzyOptions,
                 searcherDataSet: searchableMapping[key].dataSet,
-                searcherSearchableFields:
-                  searchableMapping[key].searchableFields,
+                searcherSearchableFields: searchableMapping[key].searchableFields,
                 searcherIdField: searchableMapping[key].idField,
               }}
               state={{
@@ -209,16 +198,10 @@ export default function SearchView({
       <div className="flex flex-col bg-blue-50 rounded-sm h-full">
         <div className="grid grid-cols-4 row-span-1 gap-2 p-2">
           {searchShowNoResults ? (
-            <div className="flex flex-col w-full p-2 font-bold text-xl">
-              {inputSearchNoResults}
-            </div>
+            <div className="flex flex-col w-full p-2 font-bold text-xl">{inputSearchNoResults}</div>
           ) : (
             Object.entries(searchResults)
-              .filter(
-                ([key, _]) =>
-                  key === searchCategory ||
-                  searchCategory === searchInitialCategory
-              )
+              .filter(([key, _]) => key === searchCategory || searchCategory === searchInitialCategory)
               .map(([key, value]) => {
                 if (!value.length) {
                   return null;

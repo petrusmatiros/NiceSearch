@@ -18,21 +18,13 @@ interface SearcherProps {
     hidden?: boolean;
     allowSearchExecution: boolean;
     setSearchResults: Dispatch<SetStateAction<{ [key: string]: any[] }>>;
-    setSearchResultsComputedTime: Dispatch<
-      SetStateAction<{ [key: string]: number }>
-    >;
+    setSearchResultsComputedTime: Dispatch<SetStateAction<{ [key: string]: number }>>;
   };
   onClick: (data: any) => void;
 }
 
 export default function Searcher({
-  config: {
-    searcherName,
-    searcherFuzzyOptions,
-    searcherDataSet,
-    searcherSearchableFields,
-    searcherIdField,
-  },
+  config: { searcherName, searcherFuzzyOptions, searcherDataSet, searcherSearchableFields, searcherIdField },
   state: {
     searchCategory,
     searchString,
@@ -46,20 +38,12 @@ export default function Searcher({
   className,
 }: SearcherProps) {
   const [fuzzyRef, setFuzzyRef] = useState<uFuzzy | null>(null);
-  const [mainDataIndex, setMainDataIndex] = useState<Map<string, any>>(
-    new Map()
-  );
+  const [mainDataIndex, setMainDataIndex] = useState<Map<string, any>>(new Map());
   const [searchableDataSet, setSearchableDataSet] = useState<string[]>([]);
-  const [searchIndex, setSearchIndex] = useState<Map<string, string>>(
-    new Map()
-  );
+  const [searchIndex, setSearchIndex] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
-    function generateSearchableDataSet(
-      data: any[],
-      searchableFields: string[],
-      idField: string
-    ): string[] | string {
+    function generateSearchableDataSet(data: any[], searchableFields: string[], idField: string): string[] | string {
       if (!data.length) {
         return 'No data provided';
       }
@@ -93,10 +77,7 @@ export default function Searcher({
           // Split field if it is nested
           const splitField = field.split('.');
           // Ensure that we get the field to search depending on if it is nested or not
-          const fieldToSearch =
-            splitField.length > 1
-              ? splitField.reduce((o, i) => o[i], item)
-              : item[splitField[0]];
+          const fieldToSearch = splitField.length > 1 ? splitField.reduce((o, i) => o[i], item) : item[splitField[0]];
 
           // Ensure that the field exists, and is a not undefined or null
           if (fieldToSearch === undefined || fieldToSearch === null) {
@@ -127,11 +108,7 @@ export default function Searcher({
       return dataSet;
     }
 
-    const dataSet = generateSearchableDataSet(
-      searcherDataSet,
-      searcherSearchableFields,
-      searcherIdField
-    );
+    const dataSet = generateSearchableDataSet(searcherDataSet, searcherSearchableFields, searcherIdField);
 
     if (typeof dataSet === 'string') {
       console.error(dataSet);
@@ -205,9 +182,7 @@ export default function Searcher({
       }
       seenIndices.push(retrievedIndexID);
 
-      const objectData = retrievedIndexID
-        ? mainDataIndex.get(retrievedIndexID)
-        : null;
+      const objectData = retrievedIndexID ? mainDataIndex.get(retrievedIndexID) : null;
 
       if (objectData) {
         searchResults.push(objectData);
@@ -220,8 +195,7 @@ export default function Searcher({
     !hidden && (
       <div onClick={onClick} className={className}>
         <p>
-          {capitalizeFirstLetter(searcherName)}{' '}
-          {<span>({amountOfResults})</span>}
+          {capitalizeFirstLetter(searcherName)} {<span>({amountOfResults})</span>}
         </p>
       </div>
     )
