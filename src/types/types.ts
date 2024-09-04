@@ -4,3 +4,16 @@ export interface SearchableMapping {
   idField: string;
   dataSet: any[];
 }
+
+export interface TimeInType {
+  Milliseconds: {
+    divideBy: number;
+    postfix: string;
+  };
+  Seconds: {
+    divideBy: number;
+    postfix: string;
+  };
+}
+
+export type TimeInKeyType = TimeInType[keyof TimeInType]

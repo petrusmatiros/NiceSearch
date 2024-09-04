@@ -1,14 +1,17 @@
 import uFuzzy from '@leeoniya/ufuzzy';
+import { TimeIn } from '../../constants/constants';
 import { SearchableMapping } from '../../types/types';
 import SearchResult from '../SearchResult/Post/SearchResult';
 import SearchView from '../SearchView/SearchView';
 
 export default function Search() {
-  const initialSearchCategory = 'all';
+  const searchInitialCategory = 'all';
   const inputSearchLabel = 'Search';
   const inputSearchPlaceholder = 'Search for';
   const inputSearchNoResults = 'No results found';
-  const maxAmountOfCards = 10;
+  const searchResultTimeAmountOfDecimals = 3
+  const searchResultTimeFormat = TimeIn.Milliseconds;
+  const searchMaxAmountOfCards = 10;
 
   // See: https://github.com/leeoniya/uFuzzy?tab=readme-ov-file#options
   const searcherFuzzyOptions: uFuzzy.Options = {
@@ -101,13 +104,28 @@ export default function Search() {
 
   return (
     <SearchView
-      initialSearchCategory={initialSearchCategory}
-      inputSearchLabel={inputSearchLabel}
-      inputSearchPlaceholder={inputSearchPlaceholder}
-      inputSearchNoResults={inputSearchNoResults}
-      maxAmountOfCards={maxAmountOfCards}
-      searchableMapping={searchableMapping}
-      searcherFuzzyOptions={searcherFuzzyOptions}
+      search={
+        {
+          config: {
+            searchableMapping: searchableMapping,
+            searcherFuzzyOptions: searcherFuzzyOptions,
+            searchInitialCategory: searchInitialCategory,
+          },
+          results: {
+            searchResultTimeAmountOfDecimals: searchResultTimeAmountOfDecimals,
+            searchResultTimeFormat: searchResultTimeFormat,
+            searchMaxAmountOfCards: searchMaxAmountOfCards,
+          }
+        }
+      }
+      input={
+        {
+          inputSearchLabel: inputSearchLabel,
+          inputSearchPlaceholder: inputSearchPlaceholder,
+          inputSearchNoResults: inputSearchNoResults,
+        }
+
+      }
     />
   );
 }

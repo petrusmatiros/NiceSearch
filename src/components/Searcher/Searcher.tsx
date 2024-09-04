@@ -1,37 +1,45 @@
 import uFuzzy from '@leeoniya/ufuzzy';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { capitalizeFirstLetter } from '../../utils';
+import { capitalizeFirstLetter } from '../../utils/utils';
 
 interface SearcherProps {
-  searcherName: string;
-  searcherFuzzyOptions?: uFuzzy.Options;
-  searcherDataSet: any[];
-  searcherSearchableFields: string[];
-  searcherIdField: string;
-  searchString: string;
-  searchCategory: string;
-  initialSearchCategory: string;
-  amountOfResults?: number;
-  hidden?: boolean;
-  allowSearchExecution: boolean;
-  setSearchResults: Dispatch<SetStateAction<{ [key: string]: any[] }>>;
-  onClick: (data: any) => void;
   className?: string;
+  config: {
+    searcherName: string;
+    searcherFuzzyOptions?: uFuzzy.Options;
+    searcherDataSet: any[];
+    searcherSearchableFields: string[];
+    searcherIdField: string;
+  }
+  state: {
+    searchCategory: string;
+    searchString: string;
+    amountOfResults?: number;
+    hidden?: boolean;
+    allowSearchExecution: boolean;
+    setSearchResults: Dispatch<SetStateAction<{ [key: string]: any[] }>>;
+    setSearchResultsComputedTime: Dispatch<SetStateAction<{ [key: string]: number }>>;
+  }
+  onClick: (data: any) => void;
 }
 
 export default function Searcher({
-  searcherName,
-  searcherFuzzyOptions,
-  searcherDataSet,
-  searcherSearchableFields,
-  searcherIdField,
-  searchString,
-  searchCategory,
-  initialSearchCategory,
-  amountOfResults,
-  hidden,
-  allowSearchExecution,
-  setSearchResults,
+  config: {
+    searcherName,
+    searcherFuzzyOptions,
+    searcherDataSet,
+    searcherSearchableFields,
+    searcherIdField,
+  },
+  state: {
+    searchCategory,
+    searchString,
+    amountOfResults,
+    hidden,
+    allowSearchExecution,
+    setSearchResults,
+    setSearchResultsComputedTime,
+  },
   onClick,
   className,
 }: SearcherProps) {
@@ -136,16 +144,25 @@ export default function Searcher({
     if (searchString.trim().length === 0) {
       return;
     }
+    const computedTimeStart = performance.now();
+    const resultsFromSearchExecution = executeSearch(
+      fuzzyRef,
+      mainDataIndex,
+      searchableDataSet,
+      searchIndex,
+      searchString
+    )
+    const computedTime = performance.now() - computedTimeStart;
+    setSearchResultsComputedTime((prev) => {
+      return {
+        ...prev,
+        [searcherName]: computedTime,
+      };
+    });
     setSearchResults((prev) => {
       return {
         ...prev,
-        [searcherName]: executeSearch(
-          fuzzyRef,
-          mainDataIndex,
-          searchableDataSet,
-          searchIndex,
-          searchString
-        ),
+        [searcherName]: resultsFromSearchExecution,
       };
     });
   }, [searchString, searchCategory]);
@@ -162,7 +179,16 @@ export default function Searcher({
 
     const fuzzyResults = fuzzy.search(stringDataSet, searchQuery, 0);
 
-    // Select first entry of results, since the first array contains the search results
+    /**
+     * The search results are processed in the following way:
+     * 1. Fuzzy results are an array of arrays, where the first array is the best match
+     * 2. The first array contains the indices of the best matches
+     * 3. Using the indicies, the value of said matched field can be retrieved from the stringDataSet
+     * 4. The value of the matched field can be used to retrieve the ID of the object from the searchIndex
+     * 5. The ID can be used to retrieve the object from the mainDataIndex
+     * 6. It is ensured that no duplicates may occur using seenIndices, since using multiple searchableFields, leads to multiple matches, mapped to the same object
+     * 7. The object can be pushed to the searchResults array
+     */
     const resultIndices = fuzzyResults[0] ?? [];
     const searchResults: any[] = [];
     const seenIndices: string[] = [];

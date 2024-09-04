@@ -1,40 +1,65 @@
+import uFuzzy from '@leeoniya/ufuzzy';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
-import { capitalizeFirstLetter } from '../../utils';
+import { SearchableMapping, TimeInKeyType } from '../../types/types';
+import { capitalizeFirstLetter } from '../../utils/utils';
 import Searcher from '../Searcher/Searcher';
-import { SearchableMapping } from '../../types/types';
-import uFuzzy from '@leeoniya/ufuzzy';
 
 interface SearchViewProps {
-  initialSearchCategory: string;
-  inputSearchLabel: string;
-  inputSearchPlaceholder: string;
-  inputSearchNoResults: string;
-  maxAmountOfCards: number;
-  searchableMapping: Record<string, SearchableMapping>;
-  searcherFuzzyOptions: uFuzzy.Options;
+  search: {
+    config: {
+      searchableMapping: Record<string, SearchableMapping>;
+      searcherFuzzyOptions: uFuzzy.Options;
+      searchInitialCategory: string;
+    }
+    results: {
+      searchResultTimeAmountOfDecimals: number;
+      searchResultTimeFormat: TimeInKeyType;
+      searchMaxAmountOfCards: number;
+    }
+  }
+  input: {
+    inputSearchLabel: string;
+    inputSearchPlaceholder: string;
+    inputSearchNoResults: string;
+  }
 }
 
 export default function SearchView({
-  initialSearchCategory,
-  inputSearchLabel,
-  inputSearchPlaceholder,
-  inputSearchNoResults,
-  maxAmountOfCards,
-  searchableMapping,
-  searcherFuzzyOptions,
+  search: {
+    config: {
+      searchableMapping,
+      searcherFuzzyOptions,
+      searchInitialCategory,
+    },
+    results: {
+      searchResultTimeAmountOfDecimals,
+      searchResultTimeFormat,
+      searchMaxAmountOfCards,
+    }
+  },
+  input: {
+    inputSearchLabel,
+    inputSearchPlaceholder,
+    inputSearchNoResults,
+  },
 }: SearchViewProps) {
   const [searchString, setSearchString] = useState<string>('');
   const [searchResults, setSearchResults] = useState<{ [key: string]: any[] }>(
     {}
   );
   const [searchCategory, setSearchCategory] = useState<string>(
-    initialSearchCategory
+    searchInitialCategory
   );
   const [amountOfSearchResults, setAmountOfSearchResults] = useState<number>(0);
+  const [searchTotalExecutionTime, setSearchTotalExecutionTime] = useState<string>("");
+  const [searchResultsComputedTime, setSearchResultsComputedTime] = useState<{ [key: string]: number }>({});
   const [searchShowNoResults, setSearchShowNoResults] =
     useState<boolean>(false);
 
+  /**
+   * Set initial search results, or when search string is empty
+   */
   useEffect(() => {
     if (searchString.trim().length === 0) {
       for (const key in searchableMapping) {
@@ -48,25 +73,22 @@ export default function SearchView({
     }
   }, [searchString]);
 
-  useEffect(() => {
-    if (searchString.trim().length === 0) {
-      return;
-    }
-  }, [searchCategory]);
-
+  /**
+   * Check if all results are empty and if so, show no results found
+   */
   useEffect(() => {
     // TODO:
     // When category is zero, show results not found - done
     // When another category is zero, hide the choice - done
     // Allow search for multiple fields and nested fields - done
-    // Run search all the time
+    // Run search all the time - done
     // Add highlighting
     // Show amount of results
     // Show search time
 
     // Check if all results are empty (for initial search category) or if the current category is empty
     const resultsAreEmpty =
-      searchCategory === initialSearchCategory
+      searchCategory === searchInitialCategory
         ? Object.entries(searchResults).every(([_, value]) => {
           return value.length === 0;
         })
@@ -81,10 +103,29 @@ export default function SearchView({
     setAmountOfSearchResults(amountOfResults);
   }, [searchResults]);
 
+  /**
+   * Calculate the total execution time of all search results or the current category
+   */
+  useEffect(() => {
+    const computedTime = searchCategory === searchInitialCategory ? Object.values(searchResultsComputedTime).reduce(
+      (acc, curr) => {
+        return acc + curr;
+      },
+      0
+    ) : searchResultsComputedTime[searchCategory];
+
+    setSearchTotalExecutionTime(
+      computedTime.toFixed(searchResultTimeAmountOfDecimals / searchResultTimeFormat.divideBy) + searchResultTimeFormat.postfix
+    );
+  }, [searchResultsComputedTime]);
+
   return (
     searchCategory && (
       <div className="flex flex-col gap-8 h-full">
         <div className="flex flex-col">
+          <div>
+            <p>in {searchTotalExecutionTime}</p>
+          </div>
           <div className="flex flex-col top-0 w-full p-2 gap-2">
             <label htmlFor="search">{inputSearchLabel}</label>
             <input
@@ -96,7 +137,7 @@ export default function SearchView({
               autoCapitalize="off"
               autoCorrect="off"
               title="search"
-              placeholder={`${searchCategory === initialSearchCategory ? inputSearchPlaceholder + '...' : inputSearchPlaceholder + ' ' + searchCategory + '(s)'}`}
+              placeholder={`${searchCategory === searchInitialCategory ? inputSearchPlaceholder + '...' : inputSearchPlaceholder + ' ' + searchCategory + '(s)'}`}
               className="border-2 border-black rounded-sm focus:outline-none px-2 py-1 w-full"
               onInput={(e) => {
                 setSearchString((e.target as HTMLInputElement).value);
@@ -107,43 +148,48 @@ export default function SearchView({
             {!searchShowNoResults && <div
               className={clsx(
                 'cursor-pointer select-none py-2 px-8 bg-blue-400 rounded-sm',
-                searchCategory === initialSearchCategory &&
+                searchCategory === searchInitialCategory &&
                 'bg-blue-600 text-white'
               )}
               onClick={() => {
-                setSearchCategory(initialSearchCategory);
+                setSearchCategory(searchInitialCategory);
               }}
             >
               <p>
-                {capitalizeFirstLetter(initialSearchCategory)}{' '}
+                {capitalizeFirstLetter(searchInitialCategory)}{' '}
                 {<span>{amountOfSearchResults}</span>}
               </p>
             </div>}
             {Object.keys(searchableMapping).map((key) => {
               return (
                 <Searcher
+                  key={key}
                   className={clsx(
                     'cursor-pointer select-none py-2 px-8 bg-blue-400 rounded-sm',
                     searchCategory === key && 'bg-blue-600 text-white'
                   )}
-                  key={key}
-                  searcherName={key}
-                  searcherFuzzyOptions={searcherFuzzyOptions}
-                  searcherDataSet={searchableMapping[key].dataSet}
-                  searcherSearchableFields={
-                    searchableMapping[key].searchableFields
-                  }
-                  searcherIdField={searchableMapping[key].idField}
-                  searchString={searchString}
-                  searchCategory={searchCategory}
-                  initialSearchCategory={initialSearchCategory}
-                  amountOfResults={searchResults[key]?.length}
-                  hidden={searchShowNoResults}
-                  allowSearchExecution={true}
-                  setSearchResults={setSearchResults}
                   onClick={() => {
                     setSearchCategory(key);
                   }}
+                  config={
+                    {
+                      searcherName: key,
+                      searcherFuzzyOptions: searcherFuzzyOptions,
+                      searcherDataSet: searchableMapping[key].dataSet,
+                      searcherSearchableFields: searchableMapping[key].searchableFields,
+                      searcherIdField: searchableMapping[key].idField,
+                    }
+                  }
+                  state={{
+                    searchString: searchString,
+                    searchCategory: searchCategory,
+                    amountOfResults: searchResults[key]?.length,
+                    hidden: searchShowNoResults,
+                    allowSearchExecution: true,
+                    setSearchResults: setSearchResults,
+                    setSearchResultsComputedTime: setSearchResultsComputedTime,
+                  }}
+                  
                 />
               );
             })}
@@ -160,7 +206,7 @@ export default function SearchView({
                 .filter(
                   ([key, _]) =>
                     key === searchCategory ||
-                    searchCategory === initialSearchCategory
+                    searchCategory === searchInitialCategory
                 )
                 .map(([key, value]) => {
                   if (!value.length) {
@@ -176,7 +222,7 @@ export default function SearchView({
                   const SearchResultComponent =
                     searchableMapping[key].component;
                   return value.map((result: any, index: number) => {
-                    if (index > maxAmountOfCards) {
+                    if (index > searchMaxAmountOfCards) {
                       return null;
                     }
                     return (
