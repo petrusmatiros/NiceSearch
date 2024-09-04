@@ -12,6 +12,7 @@ interface SearcherProps {
   searchCategory: string;
   initialSearchCategory: string;
   amountOfResults?: number;
+  hidden?: boolean;
   allowSearchExecution: boolean;
   setSearchResults: Dispatch<SetStateAction<{ [key: string]: any[] }>>;
   onClick: (data: any) => void;
@@ -28,6 +29,7 @@ export default function Searcher({
   searchCategory,
   initialSearchCategory,
   amountOfResults,
+  hidden,
   allowSearchExecution,
   setSearchResults,
   onClick,
@@ -68,6 +70,7 @@ export default function Searcher({
       /**
        * Generate string data set out of searchable fields
        * Iterate through data, for each item, look through each searchable field
+       * Ensure that the field exists, and is a string, and that we reach the nested field if it is nested
        * For each searchable field, add the field data to the searchIndex and push the data to the data set
        * After all of the searchable fields have been parsed for that given item, push the data to the dataset, and continue
        */
@@ -76,13 +79,25 @@ export default function Searcher({
         const item = data[i];
         const itemIdField = item[idField].toString();
         for (let k = 0; k < searchableFields.length; ++k) {
-          const fieldToSearch = searchableFields[k];
-          const itemSearchableField = item[fieldToSearch].toString();
-  
+          const field = searchableFields[k];
+          // Split field if it is nested
+          const splitField = field.split('.');
+          // Ensure that we get the field to search depending on if it is nested or not
+          const fieldToSearch = splitField.length > 1
+            ? splitField.reduce((o, i) => o[i], item)
+            : item[splitField[0]];
+
+          // Ensure that the field exists, and is a not undefined or null
+          if (fieldToSearch === undefined || fieldToSearch === null) {
+            continue;
+          }
+
+          const itemSearchableField = fieldToSearch.toString();
+
           // Generate index (overriding duplicates)
           searchIndex.set(itemSearchableField, itemIdField);
-          
-          dataSet.push(itemSearchableField.toString());
+
+          dataSet.push(itemSearchableField);
         }
 
         // Passing reference to the main data
@@ -115,14 +130,10 @@ export default function Searcher({
   }, []);
 
   useEffect(() => {
-    console.log("Execute search for", searcherName)
     if (!allowSearchExecution) {
       return;
     }
     if (searchString.trim().length === 0) {
-      return;
-    }
-    if (searchCategory !== searcherName && searchCategory !== initialSearchCategory) {
       return;
     }
     setSearchResults((prev) => {
@@ -154,11 +165,21 @@ export default function Searcher({
     // Select first entry of results, since the first array contains the search results
     const resultIndices = fuzzyResults[0] ?? [];
     const searchResults: any[] = [];
+    const seenIndices: string[] = [];
     for (let i = 0; i < resultIndices.length; ++i) {
       const retrievedIndexID = searchIndex.get(stringDataSet[resultIndices[i]]);
+      if (!retrievedIndexID) {
+        continue;
+      }
+      if (seenIndices.includes(retrievedIndexID)) {
+        continue;
+      }
+      seenIndices.push(retrievedIndexID);
+
       const objectData = retrievedIndexID
         ? mainDataIndex.get(retrievedIndexID)
         : null;
+
       if (objectData) {
         searchResults.push(objectData);
       }
@@ -167,7 +188,7 @@ export default function Searcher({
   }
 
   return (
-    <div onClick={onClick} className={className}>
+    !hidden && <div onClick={onClick} className={className}>
       <p>
         {capitalizeFirstLetter(searcherName)} {<span>({amountOfResults})</span>}
       </p>

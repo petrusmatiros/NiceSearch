@@ -1,4 +1,4 @@
-interface PostSearchResultProps {
+interface SearchResultProps {
   _id: string;
   _type: string;
   title: string;
@@ -7,7 +7,7 @@ interface PostSearchResultProps {
   publishedAt: string;
 }
 
-export default function PostSearchResult({ _id, title, slug, publishedAt }: PostSearchResultProps) {
+export default function SearchResult({ _id, title, slug, publishedAt }: SearchResultProps) {
 
   return <div
     key={_id}

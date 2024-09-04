@@ -1,5 +1,6 @@
+import uFuzzy from '@leeoniya/ufuzzy';
 import { SearchableMapping } from '../../types/types';
-import PostSearchResult from '../SearchResult/Post/PostSearchResult';
+import SearchResult from '../SearchResult/Post/SearchResult';
 import SearchView from '../SearchView/SearchView';
 
 export default function Search() {
@@ -8,11 +9,17 @@ export default function Search() {
   const inputSearchPlaceholder = 'Search for';
   const inputSearchNoResults = 'No results found';
   const maxAmountOfCards = 10;
+
+  // See: https://github.com/leeoniya/uFuzzy?tab=readme-ov-file#options
+  const searcherFuzzyOptions: uFuzzy.Options = {
+    intraMode: 1
+  }
+
   const searchableMapping: Record<string, SearchableMapping> = {
     post: {
-      searchableFields: ['title'],
+      searchableFields: ['title', "slug.current", "publishedAt"],
       idField: '_id',
-      component: PostSearchResult,
+      component: SearchResult,
       dataSet: [
         {
           _id: 'post1',
@@ -62,7 +69,7 @@ export default function Search() {
     page: {
       searchableFields: ['title'],
       idField: '_id',
-      component: PostSearchResult,
+      component: SearchResult,
       dataSet: [
         {
           _id: 'page1',
@@ -92,16 +99,6 @@ export default function Search() {
     },
   };
 
-  // add 100 000 more posts 
-  for (let i = 6; i < 100006; i++) {
-    searchableMapping.post.dataSet.push({
-      _id: 'post' + i,
-      _type: 'post',
-      title: 'Post ' + i,
-      slug: { _type: 'slug', current: 'post-' + i },
-    });
-  }
-  
   return (
     <SearchView
       initialSearchCategory={initialSearchCategory}
@@ -110,6 +107,7 @@ export default function Search() {
       inputSearchNoResults={inputSearchNoResults}
       maxAmountOfCards={maxAmountOfCards}
       searchableMapping={searchableMapping}
+      searcherFuzzyOptions={searcherFuzzyOptions}
     />
   );
 }

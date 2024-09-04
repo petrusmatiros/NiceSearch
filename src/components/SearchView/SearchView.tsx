@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { capitalizeFirstLetter } from '../../utils';
 import Searcher from '../Searcher/Searcher';
 import { SearchableMapping } from '../../types/types';
+import uFuzzy from '@leeoniya/ufuzzy';
 
 interface SearchViewProps {
   initialSearchCategory: string;
@@ -11,6 +12,7 @@ interface SearchViewProps {
   inputSearchNoResults: string;
   maxAmountOfCards: number;
   searchableMapping: Record<string, SearchableMapping>;
+  searcherFuzzyOptions: uFuzzy.Options;
 }
 
 export default function SearchView({
@@ -20,6 +22,7 @@ export default function SearchView({
   inputSearchNoResults,
   maxAmountOfCards,
   searchableMapping,
+  searcherFuzzyOptions,
 }: SearchViewProps) {
   const [searchString, setSearchString] = useState<string>('');
   const [searchResults, setSearchResults] = useState<{ [key: string]: any[] }>(
@@ -29,6 +32,8 @@ export default function SearchView({
     initialSearchCategory
   );
   const [amountOfSearchResults, setAmountOfSearchResults] = useState<number>(0);
+  const [searchShowNoResults, setSearchShowNoResults] =
+    useState<boolean>(false);
 
   useEffect(() => {
     if (searchString.trim().length === 0) {
@@ -50,11 +55,30 @@ export default function SearchView({
   }, [searchCategory]);
 
   useEffect(() => {
-    setAmountOfSearchResults(
-      Object.values(searchResults).reduce((acc, curr) => {
-        return acc + curr.length;
-      }, 0)
-    );
+    // TODO:
+    // When category is zero, show results not found - done
+    // When another category is zero, hide the choice - done
+    // Allow search for multiple fields and nested fields - done
+    // Run search all the time
+    // Add highlighting
+    // Show amount of results
+    // Show search time
+
+    // Check if all results are empty (for initial search category) or if the current category is empty
+    const resultsAreEmpty =
+      searchCategory === initialSearchCategory
+        ? Object.entries(searchResults).every(([_, value]) => {
+          return value.length === 0;
+        })
+        : searchResults[searchCategory].length === 0;
+
+    setSearchShowNoResults(resultsAreEmpty);
+
+    const amountOfResults = Object.values(searchResults).reduce((acc, curr) => {
+      return acc + curr.length;
+    }, 0);
+    console.log(amountOfResults);
+    setAmountOfSearchResults(amountOfResults);
   }, [searchResults]);
 
   return (
@@ -80,7 +104,7 @@ export default function SearchView({
             />
           </div>
           <div className="flex flex-row flex-wrap w-full gap-2 p-2">
-            <div
+            {!searchShowNoResults && <div
               className={clsx(
                 'cursor-pointer select-none py-2 px-8 bg-blue-400 rounded-sm',
                 searchCategory === initialSearchCategory &&
@@ -94,7 +118,7 @@ export default function SearchView({
                 {capitalizeFirstLetter(initialSearchCategory)}{' '}
                 {<span>{amountOfSearchResults}</span>}
               </p>
-            </div>
+            </div>}
             {Object.keys(searchableMapping).map((key) => {
               return (
                 <Searcher
@@ -104,7 +128,7 @@ export default function SearchView({
                   )}
                   key={key}
                   searcherName={key}
-                  searcherFuzzyOptions={{ intraMode: 1 }}
+                  searcherFuzzyOptions={searcherFuzzyOptions}
                   searcherDataSet={searchableMapping[key].dataSet}
                   searcherSearchableFields={
                     searchableMapping[key].searchableFields
@@ -114,10 +138,8 @@ export default function SearchView({
                   searchCategory={searchCategory}
                   initialSearchCategory={initialSearchCategory}
                   amountOfResults={searchResults[key]?.length}
-                  allowSearchExecution={
-                    searchCategory === key ||
-                    searchCategory === initialSearchCategory
-                  }
+                  hidden={searchShowNoResults}
+                  allowSearchExecution={true}
                   setSearchResults={setSearchResults}
                   onClick={() => {
                     setSearchCategory(key);
@@ -129,12 +151,11 @@ export default function SearchView({
         </div>
         <div className="flex flex-col bg-blue-50 rounded-sm h-full">
           <div className="grid grid-cols-4 row-span-1 gap-2 p-2">
-            {searchResults &&
-              Object.entries(searchResults).map(([_, value]) => {
-                return searchCategory === initialSearchCategory
-                  ? true
-                  : value.length > 0;
-              }) ? (
+            {searchShowNoResults ? (
+              <div className="flex flex-col w-full p-2 font-bold text-xl">
+                {inputSearchNoResults}
+              </div>
+            ) : (
               Object.entries(searchResults)
                 .filter(
                   ([key, _]) =>
@@ -163,10 +184,6 @@ export default function SearchView({
                     );
                   });
                 })
-            ) : (
-              <div className="flex flex-col w-full p-2 font-bold text-xl">
-                {inputSearchNoResults}
-              </div>
             )}
           </div>
         </div>
