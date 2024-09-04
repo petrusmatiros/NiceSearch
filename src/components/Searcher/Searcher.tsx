@@ -9,6 +9,8 @@ interface SearcherProps {
   searcherSearchableField: string;
   searcherIdField: string;
   searchString: string;
+  searchCategory: string;
+  initialSearchCategory: string;
   amountOfResults?: number;
   allowSearchExecution: boolean;
   setSearchResults: Dispatch<SetStateAction<{ [key: string]: any[] }>>;
@@ -23,6 +25,8 @@ export default function Searcher({
   searcherSearchableField,
   searcherIdField,
   searchString,
+  searchCategory,
+  initialSearchCategory,
   amountOfResults,
   allowSearchExecution,
   setSearchResults,
@@ -102,10 +106,14 @@ export default function Searcher({
   }, []);
 
   useEffect(() => {
+    console.log("Execute search for", searcherName)
     if (!allowSearchExecution) {
       return;
     }
     if (searchString.trim().length === 0) {
+      return;
+    }
+    if (searchCategory !== searcherName && searchCategory !== initialSearchCategory) {
       return;
     }
     setSearchResults((prev) => {
@@ -120,7 +128,7 @@ export default function Searcher({
         ),
       };
     });
-  }, [searchString]);
+  }, [searchString, searchCategory]);
 
   function executeSearch(
     fuzzy: uFuzzy | null,

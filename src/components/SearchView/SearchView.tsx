@@ -44,23 +44,10 @@ export default function SearchView({
   }, [searchString]);
 
   useEffect(() => {
-    // TODO
     if (searchString.trim().length === 0) {
       return;
     }
-
-    setSearchResults((prev) => {
-      const newResults: { [key: string]: any[] } = {};
-      for (const key in prev) {
-        newResults[key] = prev[key].filter((result) => {
-          return result[searchableMapping[key].searchableField]
-            .toString()
-            .toLowerCase()
-            .includes(searchString.toLowerCase());
-        });
-      }
-      return newResults;
-    });
+    
   }, [searchCategory]);
 
   useEffect(() => {
@@ -125,6 +112,8 @@ export default function SearchView({
                   }
                   searcherIdField={searchableMapping[key].idField}
                   searchString={searchString}
+                  searchCategory={searchCategory}
+                  initialSearchCategory={initialSearchCategory}
                   amountOfResults={searchResults[key]?.length}
                   allowSearchExecution={
                     searchCategory === key ||
