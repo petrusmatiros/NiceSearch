@@ -14,6 +14,7 @@ export default function Search() {
   const searchResultTimeAmountOfDecimals = 1;
   const searchResultTimeFormat = TimeFormat.Milliseconds;
   const searchMaxAmountOfCards = 10;
+  const searchMaxResultCap = 10;
 
   // See: https://github.com/leeoniya/uFuzzy?tab=readme-ov-file#options
   const searcherFuzzyOptions: uFuzzy.Options = {
@@ -59,7 +60,7 @@ export default function Search() {
           title: 'The Future of Space Exploration',
           slug: { _type: 'slug', current: 'the-future-of-space-exploration' },
           author: { _ref: 'author4', _type: 'reference' },
-          publishedAt: '2024-06-20T08:00:00Z',
+          publishedAt: '2024-05-10T12:30:00Z',
         },
         {
           _id: 'post5',
@@ -104,6 +105,16 @@ export default function Search() {
     },
   };
 
+  // mock data
+  for (let i = 0; i < 1000 * 1000; ++i) {
+    searchableMapping.post.dataSet.push({
+      _id: `postabc${i + 6}`,
+      _type: 'post',
+      title: `Post ${i + 6}`,
+      slug: { _type: 'slug', current: `blablabla-${i + 6}` },
+    });
+  }
+
   return (
     <SearchView
       search={{
@@ -111,6 +122,7 @@ export default function Search() {
           searchableMapping: searchableMapping,
           searcherFuzzyOptions: searcherFuzzyOptions,
           searchInitialCategory: searchInitialCategory,
+          searchMaxResultCap: searchMaxResultCap,
         },
         results: {
           searchResultTimePrefixLabel: searchResultTimePrefixLabel,

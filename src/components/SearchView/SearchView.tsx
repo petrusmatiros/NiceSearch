@@ -11,6 +11,7 @@ interface SearchViewProps {
       searchableMapping: Record<string, SearchableMapping>;
       searcherFuzzyOptions: uFuzzy.Options;
       searchInitialCategory: string;
+      searchMaxResultCap: number;
     };
     results: {
       searchResultTimePrefixLabel: string;
@@ -29,7 +30,7 @@ interface SearchViewProps {
 
 export default function SearchView({
   search: {
-    config: { searchableMapping, searcherFuzzyOptions, searchInitialCategory },
+    config: { searchableMapping, searcherFuzzyOptions, searchInitialCategory, searchMaxResultCap },
     results: {
       searchResultTimePrefixLabel,
       searchAmountOfResultsSuffixLabel,
@@ -82,13 +83,15 @@ export default function SearchView({
     // Add highlighting
     // Show amount of results - done
     // Show search time - done
+    // Add uniqueness to fields from same object - done
+    // Make fields with similar data, on the same object, searchable
 
     // Check if all results are empty (for initial search category) or if the current category is empty
     const resultsAreEmpty =
       searchCategory === searchInitialCategory
         ? Object.entries(searchResults).every(([_, value]) => {
-            return value.length === 0;
-          })
+          return value.length === 0;
+        })
         : searchResults[searchCategory].length === 0;
     setSearchShowNoResults(resultsAreEmpty);
 
@@ -102,12 +105,6 @@ export default function SearchView({
   }, [searchResults]);
 
   /**
-   * searchCategory
-   * =--------------------------=--------------------------=--------------------------=--------------------------=--------------------------
-   */
-  useEffect(() => {}, [searchCategory]);
-
-  /**
    * searchResultsComputedTime
    * =--------------------------=--------------------------=--------------------------=--------------------------=--------------------------
    * Calculate the total execution time of all search results or the current category
@@ -116,8 +113,8 @@ export default function SearchView({
     const computedTime =
       searchCategory === searchInitialCategory
         ? Object.values(searchResultsComputedTime).reduce((acc, curr) => {
-            return acc + curr;
-          }, 0)
+          return acc + curr;
+        }, 0)
         : searchResultsComputedTime[searchCategory];
 
     setSearchTotalExecutionTime(
@@ -195,6 +192,7 @@ export default function SearchView({
                 searcherDataSet: searchableMapping[key].dataSet,
                 searcherSearchableFields: searchableMapping[key].searchableFields,
                 searcherIdField: searchableMapping[key].idField,
+                searchMaxResultCap: searchMaxResultCap,
               }}
               state={{
                 searchString: searchString,
@@ -252,6 +250,7 @@ export default function SearchView({
   return (
     searchCategory && (
       <div className="flex h-full flex-col gap-8">
+        <div id="matches"></div>
         <div className="flex flex-col">
           {searchInputComponent()}
           {searchResultsInfoComponent()}
