@@ -10,6 +10,7 @@ export default function Search() {
   const inputSearchPlaceholder = 'Search for';
   const inputSearchNoResults = 'No results found';
   const searchResultTimePrefixLabel = 'in';
+  const searchAmountOfResultsSuffixLabel = 'results';
   const searchResultTimeAmountOfDecimals = 1;
   const searchResultTimeFormat = TimeFormat.Milliseconds;
   const searchMaxAmountOfCards = 10;
@@ -113,6 +114,7 @@ export default function Search() {
         },
         results: {
           searchResultTimePrefixLabel: searchResultTimePrefixLabel,
+          searchAmountOfResultsSuffixLabel: searchAmountOfResultsSuffixLabel,
           searchResultTimeAmountOfDecimals: searchResultTimeAmountOfDecimals,
           searchResultTimeFormat: searchResultTimeFormat,
           searchMaxAmountOfCards: searchMaxAmountOfCards,

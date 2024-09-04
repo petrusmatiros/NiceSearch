@@ -8,11 +8,11 @@ export interface SearchableMapping {
 export interface TimeFormatType {
   Milliseconds: {
     divideBy: number;
-    postfix: string;
+    suffix: string;
   };
   Seconds: {
     divideBy: number;
-    postfix: string;
+    suffix: string;
   };
 }
 

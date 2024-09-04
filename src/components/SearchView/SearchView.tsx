@@ -14,6 +14,7 @@ interface SearchViewProps {
     };
     results: {
       searchResultTimePrefixLabel: string;
+      searchAmountOfResultsSuffixLabel: string;
       searchResultTimeAmountOfDecimals: number;
       searchResultTimeFormat: TimeFormatKeyType;
       searchMaxAmountOfCards: number;
@@ -31,6 +32,7 @@ export default function SearchView({
     config: { searchableMapping, searcherFuzzyOptions, searchInitialCategory },
     results: {
       searchResultTimePrefixLabel,
+      searchAmountOfResultsSuffixLabel,
       searchResultTimeAmountOfDecimals,
       searchResultTimeFormat,
       searchMaxAmountOfCards,
@@ -41,7 +43,7 @@ export default function SearchView({
   const [searchString, setSearchString] = useState<string>('');
   const [searchResults, setSearchResults] = useState<{ [key: string]: any[] }>({});
   const [searchCategory, setSearchCategory] = useState<string>(searchInitialCategory);
-  const [amountOfSearchResults, setAmountOfSearchResults] = useState<number>(0);
+  const [searchTotalResultAmount, setSearchTotalResultAmount] = useState<number>(0);
   const [searchTotalExecutionTime, setSearchTotalExecutionTime] = useState<string>('');
   const [searchResultsComputedTime, setSearchResultsComputedTime] = useState<{
     [key: string]: number;
@@ -49,6 +51,8 @@ export default function SearchView({
   const [searchShowNoResults, setSearchShowNoResults] = useState<boolean>(false);
 
   /**
+   * searchString
+   * =--------------------------=--------------------------=--------------------------=--------------------------=--------------------------
    * Set initial search results, or when search string is empty
    */
   useEffect(() => {
@@ -65,6 +69,8 @@ export default function SearchView({
   }, [searchString]);
 
   /**
+   * searchResults
+   * =--------------------------=--------------------------=--------------------------=--------------------------=--------------------------
    * Check if all results are empty and if so, show no results found
    */
   useEffect(() => {
@@ -74,7 +80,7 @@ export default function SearchView({
     // Allow search for multiple fields and nested fields - done
     // Run search all the time - done
     // Add highlighting
-    // Show amount of results
+    // Show amount of results - done
     // Show search time - done
 
     // Check if all results are empty (for initial search category) or if the current category is empty
@@ -84,17 +90,26 @@ export default function SearchView({
             return value.length === 0;
           })
         : searchResults[searchCategory].length === 0;
-
     setSearchShowNoResults(resultsAreEmpty);
 
-    const amountOfResults = Object.values(searchResults).reduce((acc, curr) => {
-      return acc + curr.length;
-    }, 0);
-    console.log(amountOfResults);
-    setAmountOfSearchResults(amountOfResults);
+    if (searchCategory === searchInitialCategory) {
+      setSearchTotalResultAmount(
+        Object.values(searchResults).reduce((acc, curr) => {
+          return acc + curr.length;
+        }, 0)
+      );
+    }
   }, [searchResults]);
 
   /**
+   * searchCategory
+   * =--------------------------=--------------------------=--------------------------=--------------------------=--------------------------
+   */
+  useEffect(() => {}, [searchCategory]);
+
+  /**
+   * searchResultsComputedTime
+   * =--------------------------=--------------------------=--------------------------=--------------------------=--------------------------
    * Calculate the total execution time of all search results or the current category
    */
   useEffect(() => {
@@ -106,15 +121,21 @@ export default function SearchView({
         : searchResultsComputedTime[searchCategory];
 
     setSearchTotalExecutionTime(
-      `${computedTime.toFixed(searchResultTimeAmountOfDecimals / searchResultTimeFormat.divideBy)} ${searchResultTimeFormat.postfix}`
+      `${computedTime.toFixed(searchResultTimeAmountOfDecimals / searchResultTimeFormat.divideBy)} ${searchResultTimeFormat.suffix}`
     );
   }, [searchResultsComputedTime]);
 
+  /**
+   * Components
+   * =--------------------------=--------------------------=--------------------------=--------------------------=--------------------------
+   */
+
   const searchInputComponent = () => {
     return (
-      <div className="flex flex-col top-0 w-full p-2 gap-2">
+      <div className="top-0 flex w-full flex-col gap-2 p-2">
         <label htmlFor="search">{inputSearchLabel}</label>
         <input
+          className="w-full rounded-sm border-2 border-transparent px-2 py-1 outline-none transition-all duration-150 ease-in-out focus-visible:border-b-black focus-visible:bg-gray-50"
           type="text"
           id="search"
           name="search"
@@ -124,7 +145,6 @@ export default function SearchView({
           autoCorrect="off"
           title="search"
           placeholder={`${searchCategory === searchInitialCategory ? inputSearchPlaceholder + '...' : inputSearchPlaceholder + ' ' + searchCategory + '(s)'}`}
-          className="border-2 border-black rounded-sm focus:outline-none px-2 py-1 w-full"
           onInput={(e) => {
             setSearchString((e.target as HTMLInputElement).value);
           }}
@@ -135,27 +155,29 @@ export default function SearchView({
 
   const searchResultsInfoComponent = () => {
     return (
-      <div>
-        <p>{`${searchResultTimePrefixLabel} ${searchTotalExecutionTime}`}</p>
+      <div className="flex w-full flex-col px-6 py-2">
+        <p className="tabular-nums">{`${searchCategory === searchInitialCategory ? searchTotalResultAmount : searchResults[searchCategory]?.length} ${searchAmountOfResultsSuffixLabel}`}</p>
+        <p className="tabular-nums">{`${searchResultTimePrefixLabel} ${searchTotalExecutionTime}`}</p>
       </div>
     );
   };
 
   const searchCategoriesComponent = () => {
     return (
-      <div className="flex flex-row flex-wrap w-full gap-2 p-2">
+      <div className="flex w-full flex-row flex-wrap gap-2 p-2">
         {!searchShowNoResults && (
           <div
             className={clsx(
-              'cursor-pointer select-none py-2 px-8 bg-blue-400 rounded-sm',
-              searchCategory === searchInitialCategory && 'bg-blue-600 text-white'
+              'cursor-pointer select-none rounded-sm bg-gray-400 px-8 py-2',
+              searchCategory === searchInitialCategory && 'bg-gray-600 text-white'
             )}
             onClick={() => {
               setSearchCategory(searchInitialCategory);
             }}
           >
             <p>
-              {capitalizeFirstLetter(searchInitialCategory)} {<span>{amountOfSearchResults}</span>}
+              {capitalizeFirstLetter(searchInitialCategory)}{' '}
+              {<span className="tabular-nums">{searchTotalResultAmount}</span>}
             </p>
           </div>
         )}
@@ -164,8 +186,8 @@ export default function SearchView({
             <Searcher
               key={key}
               className={clsx(
-                'cursor-pointer select-none py-2 px-8 bg-blue-400 rounded-sm',
-                searchCategory === key && 'bg-blue-600 text-white'
+                'cursor-pointer select-none rounded-sm bg-gray-400 px-8 py-2',
+                searchCategory === key && 'bg-gray-600 text-white'
               )}
               config={{
                 searcherName: key,
@@ -195,10 +217,10 @@ export default function SearchView({
 
   const searchResultsComponent = () => {
     return (
-      <div className="flex flex-col bg-blue-50 rounded-sm h-full">
-        <div className="grid grid-cols-4 row-span-1 gap-2 p-2">
+      <div className="flex h-full flex-col rounded-sm bg-gray-50">
+        <div className="row-span-1 grid grid-cols-4 gap-2 p-2">
           {searchShowNoResults ? (
-            <div className="flex flex-col w-full p-2 font-bold text-xl">{inputSearchNoResults}</div>
+            <div className="flex w-full flex-col p-2 text-xl font-bold">{inputSearchNoResults}</div>
           ) : (
             Object.entries(searchResults)
               .filter(([key, _]) => key === searchCategory || searchCategory === searchInitialCategory)
@@ -229,7 +251,7 @@ export default function SearchView({
 
   return (
     searchCategory && (
-      <div className="flex flex-col gap-8 h-full">
+      <div className="flex h-full flex-col gap-8">
         <div className="flex flex-col">
           {searchInputComponent()}
           {searchResultsInfoComponent()}

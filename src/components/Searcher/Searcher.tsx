@@ -195,7 +195,7 @@ export default function Searcher({
     !hidden && (
       <div onClick={onClick} className={className}>
         <p>
-          {capitalizeFirstLetter(searcherName)} {<span>({amountOfResults})</span>}
+          {capitalizeFirstLetter(searcherName)} {<span className="tabular-nums">({amountOfResults})</span>}
         </p>
       </div>
     )
