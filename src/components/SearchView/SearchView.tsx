@@ -48,19 +48,18 @@ export default function SearchView({
     if (searchString.trim().length === 0) {
       return;
     }
+
     setSearchResults((prev) => {
-      return {
-        ...prev,
-        [searchCategory]: searchableMapping[searchCategory].dataSet.filter(
-          (data) => {
-            const searchableField = searchableMapping[searchCategory]
-              .searchableField;
-            return data[searchableField]
-              .toLowerCase()
-              .includes(searchString.toLowerCase());
-          }
-        ),
-      };
+      const newResults: { [key: string]: any[] } = {};
+      for (const key in prev) {
+        newResults[key] = prev[key].filter((result) => {
+          return result[searchableMapping[key].searchableField]
+            .toString()
+            .toLowerCase()
+            .includes(searchString.toLowerCase());
+        });
+      }
+      return newResults;
     });
   }, [searchCategory]);
 
@@ -111,7 +110,6 @@ export default function SearchView({
               </p>
             </div>
             {Object.keys(searchableMapping).map((key) => {
-              console.log(key, searchResults[key]);
               return (
                 <Searcher
                   className={clsx(
