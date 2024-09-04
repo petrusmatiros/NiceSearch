@@ -5,7 +5,7 @@ export interface SearchableMapping {
   dataSet: any[];
 }
 
-export interface TimeInType {
+export interface TimeFormatType {
   Milliseconds: {
     divideBy: number;
     postfix: string;
@@ -16,4 +16,4 @@ export interface TimeInType {
   };
 }
 
-export type TimeInKeyType = TimeInType[keyof TimeInType]
+export type TimeFormatKeyType = TimeFormatType[keyof TimeFormatType];

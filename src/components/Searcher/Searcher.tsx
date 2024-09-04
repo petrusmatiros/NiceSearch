@@ -10,7 +10,7 @@ interface SearcherProps {
     searcherDataSet: any[];
     searcherSearchableFields: string[];
     searcherIdField: string;
-  }
+  };
   state: {
     searchCategory: string;
     searchString: string;
@@ -18,8 +18,10 @@ interface SearcherProps {
     hidden?: boolean;
     allowSearchExecution: boolean;
     setSearchResults: Dispatch<SetStateAction<{ [key: string]: any[] }>>;
-    setSearchResultsComputedTime: Dispatch<SetStateAction<{ [key: string]: number }>>;
-  }
+    setSearchResultsComputedTime: Dispatch<
+      SetStateAction<{ [key: string]: number }>
+    >;
+  };
   onClick: (data: any) => void;
 }
 
@@ -91,9 +93,10 @@ export default function Searcher({
           // Split field if it is nested
           const splitField = field.split('.');
           // Ensure that we get the field to search depending on if it is nested or not
-          const fieldToSearch = splitField.length > 1
-            ? splitField.reduce((o, i) => o[i], item)
-            : item[splitField[0]];
+          const fieldToSearch =
+            splitField.length > 1
+              ? splitField.reduce((o, i) => o[i], item)
+              : item[splitField[0]];
 
           // Ensure that the field exists, and is a not undefined or null
           if (fieldToSearch === undefined || fieldToSearch === null) {
@@ -151,7 +154,7 @@ export default function Searcher({
       searchableDataSet,
       searchIndex,
       searchString
-    )
+    );
     const computedTime = performance.now() - computedTimeStart;
     setSearchResultsComputedTime((prev) => {
       return {
@@ -214,10 +217,13 @@ export default function Searcher({
   }
 
   return (
-    !hidden && <div onClick={onClick} className={className}>
-      <p>
-        {capitalizeFirstLetter(searcherName)} {<span>({amountOfResults})</span>}
-      </p>
-    </div>
+    !hidden && (
+      <div onClick={onClick} className={className}>
+        <p>
+          {capitalizeFirstLetter(searcherName)}{' '}
+          {<span>({amountOfResults})</span>}
+        </p>
+      </div>
+    )
   );
 }

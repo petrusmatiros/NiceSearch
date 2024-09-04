@@ -1,5 +1,5 @@
 import uFuzzy from '@leeoniya/ufuzzy';
-import { TimeIn } from '../../constants/constants';
+import { TimeFormat } from '../../constants/constants';
 import { SearchableMapping } from '../../types/types';
 import SearchResult from '../SearchResult/Post/SearchResult';
 import SearchView from '../SearchView/SearchView';
@@ -9,18 +9,19 @@ export default function Search() {
   const inputSearchLabel = 'Search';
   const inputSearchPlaceholder = 'Search for';
   const inputSearchNoResults = 'No results found';
-  const searchResultTimeAmountOfDecimals = 3
-  const searchResultTimeFormat = TimeIn.Milliseconds;
+  const searchResultTimePrefixLabel = 'in';
+  const searchResultTimeAmountOfDecimals = 3;
+  const searchResultTimeFormat = TimeFormat.Milliseconds;
   const searchMaxAmountOfCards = 10;
 
   // See: https://github.com/leeoniya/uFuzzy?tab=readme-ov-file#options
   const searcherFuzzyOptions: uFuzzy.Options = {
-    intraMode: 1
-  }
+    intraMode: 1,
+  };
 
   const searchableMapping: Record<string, SearchableMapping> = {
     post: {
-      searchableFields: ['title', "slug.current", "publishedAt"],
+      searchableFields: ['title', 'slug.current', 'publishedAt'],
       idField: '_id',
       component: SearchResult,
       dataSet: [
@@ -104,28 +105,24 @@ export default function Search() {
 
   return (
     <SearchView
-      search={
-        {
-          config: {
-            searchableMapping: searchableMapping,
-            searcherFuzzyOptions: searcherFuzzyOptions,
-            searchInitialCategory: searchInitialCategory,
-          },
-          results: {
-            searchResultTimeAmountOfDecimals: searchResultTimeAmountOfDecimals,
-            searchResultTimeFormat: searchResultTimeFormat,
-            searchMaxAmountOfCards: searchMaxAmountOfCards,
-          }
-        }
-      }
-      input={
-        {
-          inputSearchLabel: inputSearchLabel,
-          inputSearchPlaceholder: inputSearchPlaceholder,
-          inputSearchNoResults: inputSearchNoResults,
-        }
-
-      }
+      search={{
+        config: {
+          searchableMapping: searchableMapping,
+          searcherFuzzyOptions: searcherFuzzyOptions,
+          searchInitialCategory: searchInitialCategory,
+        },
+        results: {
+          searchResultTimePrefixLabel: searchResultTimePrefixLabel,
+          searchResultTimeAmountOfDecimals: searchResultTimeAmountOfDecimals,
+          searchResultTimeFormat: searchResultTimeFormat,
+          searchMaxAmountOfCards: searchMaxAmountOfCards,
+        },
+      }}
+      input={{
+        inputSearchLabel: inputSearchLabel,
+        inputSearchPlaceholder: inputSearchPlaceholder,
+        inputSearchNoResults: inputSearchNoResults,
+      }}
     />
   );
 }

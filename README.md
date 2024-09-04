@@ -4,14 +4,14 @@
 <h3 align="center">a really nice search</h3>
 </p>
 
-
 ## Installation and setup
+
 ```bash
 npm i
 ```
 
 To run the script, just run `npm run dev`:
+
 ```bash
 npm run dev
 ```
-

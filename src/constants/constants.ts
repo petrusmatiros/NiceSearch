@@ -1,7 +1,6 @@
-import { TimeInType } from "../types/types";
+import { TimeFormatType } from '../types/types';
 
-
-export const TimeIn: TimeInType = {
+export const TimeFormat: TimeFormatType = {
   Milliseconds: {
     divideBy: 1,
     postfix: 'ms',
